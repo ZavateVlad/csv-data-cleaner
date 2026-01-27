@@ -1,0 +1,9 @@
+name,email,age,city
+John Doe,john@email.com,25,NYC
+Jane Smith,jane.email.com,30,LA
+,bob@email.com,150,Chicago
+Alice Wong,alice@email,25,SF
+Bob Lee,bob@email.com,invalid,Seattle
+Carol Chen,carol@email.com,35,
+David Park,david.email,45,Boston
+Emma Wilson,emma@email.com,22,Denver
