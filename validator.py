@@ -1,49 +1,4 @@
-# # Exercise 1
-# products = [
-#     {"name": "apple", "price": 1.20},
-#     {"name": "banana", "price": 0.50},
-#     {"name": "orange", "price": 0.80},
-#     {"name": "grape", "price": 2.50}
-# ]
-#
-# def new_dictionary(lst):
-#     empty_dict = {}
-#     for element in lst:
-#         key = element["name"]
-#         value = element["price"]
-#         #empty_dict[key] = value
-#
-#         if value > 1.00:
-#             empty_dict[key] = value
-#
-#
-#     return empty_dict
-#
-# print(new_dictionary(products))
-
-
-# Exercise 2
-def count_chars(text):
-    freq_dict = {}
-
-    for s in text:
-        if s != " ":
-            if s not in freq_dict:
-                freq_dict[s] = 0
-            freq_dict[s] += 1
-
-    return freq_dict
-# How to remove the space?
-print(count_chars("hello world"))
-
-
-# Exercise 3
-ages = [12, 25, 17, 33, 19, 41, 16, 28]
-
-result = [age + 10 for age in ages if age >= 18]
-# Why is this not working?
-print(result)
-
+import re
 
 
 def read_csv(filename):
@@ -58,92 +13,161 @@ def read_csv(filename):
     return curated_list
 
 
-import re
-
-
 def is_valid_email(email):
     if re.match(r'^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$', email):
         return True
     else:
         return False
-    # or return '@' in email and '.' in email.split('@')[1]
+    # return '@' in email and '.' in email.split('@')[1]
+
 
 def is_valid_age(age_str):
     try:
-        if 0 < int(age_str) < 120:
-            return True
+        return 0 < int(age_str) < 120
     except ValueError:
-            return False
-    # or try:
-    #         return 0 < int(age_str) < 120
-    #     except ValueError:
-    #         return False
+        return False
+
 
 def is_not_empty(value):
-    if value != "":
-        return True
-    else:
-        return False
-    # or return bool(value.strip())
+    return bool(value.strip())
 
 
-def validate_customers(customers):
-    """
-    Validate all customer records and count errors
+def fix_email(email):
+    try:
+        curated_mail = ''.join(email.strip().split()).lower()
+        valid = is_valid_email(curated_mail)
+        return curated_mail, valid
 
-    Returns: dictionary with error counts
-    Example: {
-        'invalid_email': 3,
-        'invalid_age': 2,
-        'missing_name': 1,
-        'missing_city': 1
-    }
-    """
-    errors = {
+    except TypeError:
+        return email, False
+
+
+def fix_age(age_str):
+    try:
+        curated_age = age_str.strip()
+        age_int = int(float(curated_age))
+        curated_age = str(age_int)
+        age_valid = is_valid_age(curated_age)
+
+        return curated_age, age_valid
+
+    except ValueError:
+        return age_str, False
+
+
+def fix_name(name):
+    curated_name = ''.join(name.strip()).capitalize()
+    is_valid = is_not_empty(curated_name)
+    return curated_name, is_valid
+
+
+def fix_city(city):
+    curated_city = ''.join(city.strip()).capitalize()
+    is_valid = is_not_empty(curated_city)
+    return curated_city, is_valid
+
+
+def all_customers(persons):
+    clean_customers = []
+    error_customers = []
+    statistics = {'total_customers': len(persons), 'fixed': 0, 'unfixable': 0}
+    for customer in persons:
+        fixed_city = fix_city(customer["city"])
+        fixed_name = fix_name(customer["name"])
+        fixed_age = fix_age(customer["age"])
+        fixed_email = fix_email(customer["email"])
+        if fixed_city[1] and fixed_age[1] and fixed_email[1] and fixed_name[1]:
+            statistics['fixed'] += 1
+            clean_customers.append({
+                'name': fixed_name[0],
+                'city': fixed_city[0],
+                'age': fixed_age[0],
+                'email': fixed_email[0]
+            })
+        else:
+            statistics["unfixable"] += 1
+            error_customers.append(customer)
+
+    return statistics, clean_customers, error_customers
+
+
+def write_csv(filename, people):
+    if not people:
+        return
+    headers = ["name", "email", "age", "city"]
+    with open(filename, 'w') as f:
+        f.write(",".join(headers) + "\n")
+        for customer in people:
+            values = [customer[h] for h in headers]
+            f.write(','.join(values) + '\n')
+
+
+def validate_customers(persons):
+    invalid_features = {
         'invalid_email': 0,
         'invalid_age': 0,
         'missing_name': 0,
         'missing_city': 0
     }
 
-    for customer in customers:
+    for customer in persons:
         if not is_valid_email(customer["email"]):
-            errors['invalid_email'] += 1
+            invalid_features['invalid_email'] += 1
         if not is_valid_age(customer["age"]):
-            errors['invalid_age'] += 1
+            invalid_features['invalid_age'] += 1
         if not is_not_empty(customer["name"]):
-            errors['missing_name'] += 1
+            invalid_features['missing_name'] += 1
         if not is_not_empty(customer["city"]):
-            errors['missing_city'] += 1
+            invalid_features['missing_city'] += 1
 
-    return errors
-
-
+    return invalid_features
 
 
-def print_report(errors, total_rows):
-    """Print a nice summary of validation results"""
-    print("=== Validation Report ===")
-    print(f"Total rows processed: {total_rows}")
-    print(f"\nErrors found:")
-    print(f'- Invalid email: {errors["invalid_email"]}')
-    print(f'- Invalid age: {errors["invalid_age"]}')
-    print(f'- Invalid name: {errors["missing_name"]}')
-    print(f'- Invalid city: {errors["missing_city"]}')
-    sum_errors = sum(errors.values())
-    print(f'Total errors: {sum_errors}')
-    percentage = 100 - ((sum_errors * 100) / total_rows)
-    print(f'Success rate: {percentage}%')
+def print_detailed_report(stats, clean_customers, error_customers):
+    """Print comprehensive processing report"""
+    print("=" * 50)
+    print("CSV DATA CLEANER - PROCESSING REPORT")
+    print("=" * 50)
+
+    print(f"\n📊 SUMMARY:")
+    print(f"   Total rows processed: {stats['total_customers']}")
+    print(f"   ✅ Successfully cleaned: {stats['fixed']}")
+    print(f"   ❌ Unfixable errors: {stats['unfixable']}")
+
+    success_rate = (stats['fixed'] / stats['total_customers']) * 100
+    print(f"   Success rate: {success_rate:.1f}%")
+
+    print(f"\n📁 OUTPUT FILES:")
+    print(f"   - customers_clean.csv ({stats['fixed']} rows)")
+    print(f"   - customers_errors.csv ({stats['unfixable']} rows)")
+
+    if error_customers:
+        print(f"\n⚠️  UNFIXABLE RECORDS:")
+        for i, customer in enumerate(error_customers[:3], 1):  # Show first 3
+            print(f"   {i}. {customer['name'] or '[MISSING]'} - {customer['email']}")
+        if len(error_customers) > 3:
+            print(f"   ... and {len(error_customers) - 3} more")
+
+    print("=" * 50)
 
 
+import sys
 
 if __name__ == "__main__":
-    # 1. Read CSV
-    customers = read_csv('customers.csv')
+    # Allow custom filenames
+    input_file = sys.argv[1] if len(sys.argv) > 1 else 'customers.csv'
 
-    # 2. Validate
-    errors = validate_customers(customers)
+    print(f"Processing {input_file}...")
 
+    # Read CSV
+    customers = read_csv(input_file)
 
-    # 3. Print report
-    print_report(errors, len(customers))
+    # Process
+    stats, clean, errors = all_customers(customers)
+
+    # Write output files
+    write_csv('customers_clean.csv', clean)
+    write_csv('customers_errors.csv', errors)
+
+    # Print report
+    print_detailed_report(stats, clean, errors)
