@@ -4,10 +4,10 @@ A Python tool for validating and cleaning messy customer data from CSV files.
 
 ## Features
 
-- ✅ Validates email addresses, ages, names, and cities
-- 🔧 Automatically fixes common issues (whitespace, formatting)
-- 📊 Generates detailed processing reports
-- 📁 Separates clean data from unfixable errors
+- Validates email addresses, ages, names, and cities
+- Automatically fixes common issues (whitespace, formatting)
+- Generates detailed processing reports
+- Separates clean data from unfixable errors
 
 ## Usage
 ```bash
@@ -48,10 +48,13 @@ name,email,age,city
 Jane Smith,invalid.email,30,LA
 ```
 
+## What I Learned
 
+Building this project helped me understand:
 
-## Next Steps
-
-- [ ] Add logging
-- [ ] Support multiple file formats
-- [ ] Add configuration file for validation rules
+- **File I/O**: Reading/writing CSV files with context managers (`with open()`)
+- **String manipulation**: Using `.strip()`, `.lower()`, `.title()` for data cleaning
+- **Regex**: Email validation patterns with `re.match()`
+- **Error handling**: Try-except blocks for robust validation
+- **Data structures**: Converting CSV rows to dictionaries with `zip()`
+- **Command-line arguments**: Using `sys.argv` for flexible inputs
